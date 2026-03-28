@@ -1,6 +1,9 @@
 linkedin: www.linkedin.com/in/mayuri-dandekar-2a37ba299
 portfolio: https://mays-portfolio1.vercel.app/
 
+Coding Duo: Mayuri Dandekar
+(My duo forgot to accept the invitation)
+
 # ContentOps
 
 > AI-powered content operations — from brief to multi-channel publication in under a minute.
