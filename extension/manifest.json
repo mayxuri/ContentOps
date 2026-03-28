@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "ContentOps Signal",
+  "version": "1.0.0",
+  "description": "Capture web content, view trend signals, and generate briefs — right from your browser.",
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "ContentOps Signal",
+    "default_icon": {
+      "16":  "icons/icon16.png",
+      "48":  "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "permissions": [
+    "storage",
+    "activeTab",
+    "contextMenus"
+  ],
+
+  "host_permissions": [
+    "http://localhost:3001/*"
+  ],
+
+  "icons": {
+    "16":  "icons/icon16.png",
+    "48":  "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

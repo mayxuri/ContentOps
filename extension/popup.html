@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ContentOps Signal</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-logo">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+        <polygon points="11,2 20,7 20,15 11,20 2,15 2,7" stroke="hsl(250,85%,67%)" stroke-width="1.5" fill="none"/>
+        <polygon points="11,6 17,9.5 17,12.5 11,16 5,12.5 5,9.5" fill="hsl(250,85%,67%)" opacity="0.3"/>
+        <circle cx="11" cy="11" r="2.5" fill="hsl(250,85%,67%)"/>
+      </svg>
+      <div>
+        <div class="header-title">CONTENTOPS</div>
+        <div class="header-sub">Signal Extension</div>
+      </div>
+    </div>
+    <div id="status-indicator" class="status-dot status-connecting" title="Connecting..."></div>
+  </header>
+
+  <!-- Current page relevance bar -->
+  <div id="page-relevance-bar" class="rel-bar hidden">
+    <span class="rel-bar-dot" id="rel-bar-dot"></span>
+    <span class="rel-bar-label" id="rel-bar-label"></span>
+    <span class="rel-bar-title" id="rel-bar-title"></span>
+    <span class="rel-bar-score" id="rel-bar-score"></span>
+  </div>
+
+  <!-- Captured text banner (shown when text was sent from content script) -->
+  <div id="capture-banner" class="capture-banner hidden">
+    <span class="capture-icon">📋</span>
+    <span id="capture-source"></span>
+    <button id="capture-clear" class="capture-clear">✕</button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab tab-active" data-tab="capture">Quick Brief</button>
+    <button class="tab" data-tab="signals">Signals</button>
+    <button class="tab" data-tab="recent">Recent</button>
+  </div>
+
+  <!-- ── Tab: Quick Brief ── -->
+  <div id="tab-capture" class="tab-panel">
+    <div class="field">
+      <label class="label">TOPIC</label>
+      <input id="topic" class="input" type="text" placeholder="e.g. React 19 useFormStatus" />
+    </div>
+    <div class="field">
+      <label class="label">KEY DETAILS</label>
+      <textarea id="details" class="input textarea" rows="3"
+        placeholder="What angle, target audience, key points..."></textarea>
+    </div>
+    <div class="field">
+      <label class="label">TONE</label>
+      <div class="tone-row" id="tone-row">
+        <button class="tone-btn tone-active" data-tone="Professional">Professional</button>
+        <button class="tone-btn" data-tone="Conversational">Casual</button>
+        <button class="tone-btn" data-tone="Technical">Technical</button>
+        <button class="tone-btn" data-tone="Bold">Bold</button>
+      </div>
+    </div>
+    <div id="brief-error" class="error hidden"></div>
+    <div id="brief-success" class="success hidden"></div>
+    <button id="btn-generate" class="btn btn-primary btn-full">
+      <span id="btn-label">Generate Brief →</span>
+      <span id="btn-spinner" class="spinner hidden"></span>
+    </button>
+    <button id="btn-open-app" class="btn btn-ghost btn-full" style="margin-top:6px">
+      Open ContentOps ↗
+    </button>
+  </div>
+
+  <!-- ── Tab: Signals ── -->
+  <div id="tab-signals" class="tab-panel hidden">
+    <div class="section-label">
+      <span class="live-dot"></span>
+      TRENDING IN YOUR NICHE
+    </div>
+    <div id="signals-list" class="signal-list">
+      <!-- populated by JS -->
+    </div>
+    <p class="hint">Click any signal to prefill a brief</p>
+  </div>
+
+  <!-- ── Tab: Recent ── -->
+  <div id="tab-recent" class="tab-panel hidden">
+    <div class="section-label">RECENT PIPELINE RUNS</div>
+    <div id="recent-list" class="recent-list">
+      <div class="loading-row">
+        <div class="skeleton"></div>
+        <div class="skeleton short"></div>
+        <div class="skeleton"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

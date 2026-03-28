@@ -1,0 +1,80 @@
+import { PenTool, Shield, Globe, Send, BarChart3 } from 'lucide-react';
+
+export const AGENT_ROLES = {
+  DRAFTER: 'drafter',
+  REVIEWER: 'reviewer',
+  COMPLIANCE: 'compliance',
+  LOCALIZER: 'localizer',
+  PUBLISHER: 'publisher',
+};
+
+export const agents = [
+  {
+    id: 'agent-drafter',
+    name: 'Content Drafter',
+    role: AGENT_ROLES.DRAFTER,
+    icon: PenTool,
+    description: 'Generates initial content from briefs, product specs, and internal data. Produces blog posts, social media variants, FAQs, and sales collateral.',
+    capabilities: ['Blog post generation', 'Social media copy', 'FAQ creation', 'Tone adaptation', 'Multi-format output'],
+    status: 'active',
+    throughput: 142,
+    accuracy: 94.2,
+    avgTime: '12s',
+    color: 'hsl(175, 80%, 48%)',
+  },
+  {
+    id: 'agent-reviewer',
+    name: 'Brand Reviewer',
+    role: AGENT_ROLES.REVIEWER,
+    icon: Shield,
+    description: 'Reviews content for brand consistency, tone alignment, and style guide compliance. Ensures all output matches enterprise brand standards.',
+    capabilities: ['Tone analysis', 'Style guide enforcement', 'Terminology check', 'Voice consistency', 'Brand scoring'],
+    status: 'active',
+    throughput: 238,
+    accuracy: 97.8,
+    avgTime: '4s',
+    color: 'hsl(260, 70%, 65%)',
+  },
+  {
+    id: 'agent-compliance',
+    name: 'Compliance Officer',
+    role: AGENT_ROLES.COMPLIANCE,
+    icon: Shield,
+    description: 'Scans content for regulatory violations, unsubstantiated claims, and legal risks. Flags issues and suggests compliant alternatives.',
+    capabilities: ['Health claim detection', 'Financial regulation check', 'Legal risk assessment', 'Claim substantiation', 'Auto-rewrite'],
+    status: 'active',
+    throughput: 312,
+    accuracy: 99.1,
+    avgTime: '3s',
+    color: 'hsl(0, 75%, 60%)',
+  },
+  {
+    id: 'agent-localizer',
+    name: 'Localizer',
+    role: AGENT_ROLES.LOCALIZER,
+    icon: Globe,
+    description: 'Translates and culturally adapts content for target regions. Handles idioms, date formats, currency, and cultural sensitivities.',
+    capabilities: ['Translation', 'Cultural adaptation', 'Idiom handling', 'Format localization', 'Quality scoring'],
+    status: 'active',
+    throughput: 89,
+    accuracy: 96.5,
+    avgTime: '18s',
+    color: 'hsl(35, 95%, 60%)',
+  },
+  {
+    id: 'agent-publisher',
+    name: 'Publisher',
+    role: AGENT_ROLES.PUBLISHER,
+    icon: Send,
+    description: 'Distributes approved content across channels with platform-specific formatting. Manages scheduling, posting, and delivery confirmation.',
+    capabilities: ['Multi-channel posting', 'Format adaptation', 'Schedule optimization', 'Delivery tracking', 'A/B distribution'],
+    status: 'active',
+    throughput: 456,
+    accuracy: 99.9,
+    avgTime: '2s',
+    color: 'hsl(210, 80%, 60%)',
+  },
+];
+
+export const getAgentByRole = (role) => agents.find(a => a.role === role);
+export const getAgentById = (id) => agents.find(a => a.id === id);

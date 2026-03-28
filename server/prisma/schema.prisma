@@ -1,0 +1,157 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  role      String   @default("editor")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  briefs       ContentBrief[]
+  pipelineRuns PipelineRun[]
+
+  @@map("users")
+}
+
+model ContentBrief {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  workspace      String   @default("Personal")
+  topic          String
+  details        String
+  tone           String   @default("Professional")
+  targetChannels Json     @default("[]") @map("target_channels")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user        User         @relation(fields: [userId], references: [id])
+  pipelineRun PipelineRun?
+
+  @@map("content_briefs")
+}
+
+model PipelineRun {
+  id              String    @id @default(uuid())
+  briefId         String    @unique @map("brief_id")
+  userId          String    @map("user_id")
+  status          String    @default("pending")
+  totalDurationS  Float?    @map("total_duration_s")
+  startedAt       DateTime? @map("started_at")
+  completedAt     DateTime? @map("completed_at")
+
+  brief    ContentBrief   @relation(fields: [briefId], references: [id])
+  user     User           @relation(fields: [userId], references: [id])
+  steps    PipelineStep[]
+  outputs  ContentOutput[]
+
+  @@map("pipeline_runs")
+}
+
+model PipelineStep {
+  id             String   @id @default(uuid())
+  runId          String   @map("run_id")
+  agentName      String   @map("agent_name")
+  status         String   @default("pending")
+  durationS      Float?   @map("duration_s")
+  inputSnapshot  Json?    @map("input_snapshot")
+  outputSnapshot Json?    @map("output_snapshot")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  run PipelineRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@map("pipeline_steps")
+}
+
+model ContentOutput {
+  id        String   @id @default(uuid())
+  runId     String   @map("run_id")
+  format    String
+  title     String
+  body      String
+  metadata  Json?    @default("{}")
+  status    String   @default("draft")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  run              PipelineRun       @relation(fields: [runId], references: [id], onDelete: Cascade)
+  complianceIssues ComplianceIssue[]
+  localizations    Localization[]
+  distributions    Distribution[]
+
+  @@map("content_outputs")
+}
+
+model ComplianceIssue {
+  id              String   @id @default(uuid())
+  outputId        String   @map("output_id")
+  severity        String
+  category        String
+  originalText    String   @map("original_text")
+  issueDescription String  @map("issue_description")
+  suggestedFix    String   @map("suggested_fix")
+  regulation      String?
+  resolution      String   @default("pending")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  output ContentOutput @relation(fields: [outputId], references: [id], onDelete: Cascade)
+
+  @@map("compliance_issues")
+}
+
+model Localization {
+  id              String   @id @default(uuid())
+  outputId        String   @map("output_id")
+  languageCode    String   @map("language_code")
+  languageName    String   @map("language_name")
+  translatedBody  String   @map("translated_body")
+  qualityScore    Float    @default(0) @map("quality_score")
+  adaptationNotes String?  @map("adaptation_notes")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  output ContentOutput @relation(fields: [outputId], references: [id], onDelete: Cascade)
+
+  @@map("localizations")
+}
+
+model Channel {
+  id       String @id @default(uuid())
+  name     String @unique
+  platform String
+  status   String @default("active")
+  config   Json?  @default("{}")
+
+  distributions Distribution[]
+
+  @@map("channels")
+}
+
+model Distribution {
+  id                String    @id @default(uuid())
+  outputId          String    @map("output_id")
+  channelId         String    @map("channel_id")
+  status            String    @default("draft")
+  scheduledAt       DateTime? @map("scheduled_at")
+  publishedAt       DateTime? @map("published_at")
+  engagementMetrics Json?     @default("{}") @map("engagement_metrics")
+
+  output  ContentOutput @relation(fields: [outputId], references: [id], onDelete: Cascade)
+  channel Channel       @relation(fields: [channelId], references: [id])
+
+  @@map("distributions")
+}
+
+model AnalyticsSnapshot {
+  id                String   @id @default(uuid())
+  snapshotDate      DateTime @map("snapshot_date") @db.Date
+  engagementData    Json?    @map("engagement_data")
+  formatPerformance Json?    @map("format_performance")
+  channelMetrics    Json?    @map("channel_metrics")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  @@map("analytics_snapshots")
+}

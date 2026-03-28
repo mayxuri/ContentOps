@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cmd /c \"\"\"C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe\"\" -U postgres -c \"\"\\\\du\"\"\")",
+      "Bash(cmd /c \"\"\"C:\\\\Program Files\\\\PostgreSQL\\\\16\\\\bin\\\\psql.exe\"\" -U postgres -c \"\"\\\\du\"\"\")"
+    ]
+  }
+}
