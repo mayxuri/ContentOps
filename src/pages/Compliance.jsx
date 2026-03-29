@@ -34,6 +34,7 @@ export default function Compliance() {
   const [resolvedLocally,    setResolvedLocally]    = useState(new Set());
   const [selectedOutputId,   setSelectedOutputId]   = useState(null);
   const [showOutputPicker,   setShowOutputPicker]   = useState(false);
+  const [approved,           setApproved]           = useState(false);
 
   // Load summary → list of outputs that have issues
   const { data: summaryData, refetch: refetchSummary } = useApi(() => complianceApi.getSummary(), []);
@@ -329,15 +330,34 @@ export default function Compliance() {
               <h4>Approval Gate</h4>
             </div>
             <p className="gate-desc">Human review required before content proceeds to localization and distribution.</p>
-            <div className="gate-actions">
-              <Button variant="primary" icon={Check} disabled={unresolvedCount > 0} fullWidth>
-                Approve for Publication
-              </Button>
-              <Button variant="secondary" icon={RotateCcw} fullWidth>
-                Return to Drafter
-              </Button>
-            </div>
-            {unresolvedCount > 0 && (
+            {approved ? (
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{ textAlign: 'center', padding: '1rem 0' }}
+              >
+                <Badge variant="success" size="lg">Content Approved for Publication</Badge>
+                <p style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
+                  Sent to Localization &amp; Distribution
+                </p>
+              </motion.div>
+            ) : (
+              <div className="gate-actions">
+                <Button
+                  variant="primary"
+                  icon={Check}
+                  disabled={unresolvedCount > 0}
+                  fullWidth
+                  onClick={() => setApproved(true)}
+                >
+                  Approve for Publication
+                </Button>
+                <Button variant="secondary" icon={RotateCcw} fullWidth onClick={() => setResolvedLocally(new Set())}>
+                  Return to Drafter
+                </Button>
+              </div>
+            )}
+            {!approved && unresolvedCount > 0 && (
               <p className="gate-warning">Resolve all {unresolvedCount} violations before approving</p>
             )}
           </Card>

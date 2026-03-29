@@ -117,7 +117,7 @@ export default function Distribution() {
   const nextMonth = () => { if (calMonth === 12) { setCalMonth(1); setCalYear(y => y + 1); } else setCalMonth(m => m + 1); };
 
   // ── Publisher log ──────────────────────────────────────────────────────────
-  const pubLog = distListData?.data?.length
+  const basePubLog = distListData?.data?.length
     ? distListData.data.slice(0, 5).map((d) => ({
         action:  `${d.status === 'published' ? 'Published' : 'Scheduled'} "${d.output?.title ?? 'content'}" to ${d.channel?.name ?? 'channel'}`,
         channel: d.channel?.name ?? 'Channel',
@@ -131,6 +131,13 @@ export default function Distribution() {
         { action: 'Queued email newsletter for 45,000 subscribers',   channel: 'Email',     time: '18 min ago', status: 'scheduled' },
         { action: 'Adapted Twitter thread from blog post content',    channel: 'Twitter/X', time: '25 min ago', status: 'completed' },
       ];
+
+  const pubLog = studioEntry
+    ? [
+        { action: `Scheduled "${studioEntry.title}" for blog, social & FAQ`, channel: 'Multi-channel', time: 'just now', status: 'scheduled' },
+        ...basePubLog.slice(0, 4),
+      ]
+    : basePubLog;
 
   return (
     <div className="page-distribution">
