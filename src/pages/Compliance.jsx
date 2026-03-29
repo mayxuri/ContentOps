@@ -5,7 +5,7 @@ import {
   Check, X, RotateCcw, ChevronDown, ChevronUp, ChevronDown as SelectIcon,
 } from 'lucide-react';
 import { Card, Badge, Button, SectionHeader } from '../components/UI';
-import { complianceDocument } from '../data/mockData';
+import { complianceDocument, sampleBlogPost } from '../data/mockData';
 import { useApi, useMutation } from '../hooks/useApi';
 import { compliance as complianceApi } from '../api/client';
 import './Pages.css';
@@ -68,7 +68,7 @@ export default function Compliance() {
 
   // Decide which data to show — studio output > real API > mock fallback
   const usingRealData = !!(outputData?.output && outputData?.issues?.length >= 0);
-  const docTitle    = studioOutput?.title ?? (usingRealData ? outputData.output.title          : complianceDocument.title);
+  const docTitle    = studioOutput ? sampleBlogPost.title : (usingRealData ? outputData.output.title : complianceDocument.title);
   const docOriginal = studioOutput?.body  ?? (usingRealData ? outputData.output.body           : complianceDocument.originalContent);
   const violations  = studioOutput
     ? []
@@ -206,8 +206,8 @@ export default function Compliance() {
             <div className="diff-view">
               <Card padding="xl" className="diff-panel">
                 <div className="diff-panel-header">
-                  <Badge variant="error">Original</Badge>
-                  <span className="diff-status">Contains regulatory violations</span>
+                  <Badge variant={violations.length > 0 ? 'error' : 'success'}>Original</Badge>
+                  <span className="diff-status">{violations.length > 0 ? 'Contains regulatory violations' : 'No violations detected'}</span>
                 </div>
                 <div className="document-content" dangerouslySetInnerHTML={{ __html: highlightViolations(docOriginal) }} />
               </Card>

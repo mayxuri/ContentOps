@@ -25,8 +25,13 @@ const outputTabs = [
   { id: 'faq',    label: 'FAQ',          icon: HelpCircle },
 ];
 
-function RunOutputs({ runId }) {
-  const { data: run, loading } = useApi(() => pipelineApi.getRun(runId), [runId]);
+function RunOutputs({ runId, initialOutputs }) {
+  const { data: fetched, loading } = useApi(
+    () => initialOutputs ? Promise.resolve(null) : pipelineApi.getRun(runId),
+    [runId],
+  );
+  const run     = initialOutputs ? { outputs: initialOutputs } : fetched;
+  const isLoading = !initialOutputs && loading;
   const [copied, setCopied] = useState(null);
 
   const copyText = (text, id) => {
@@ -35,8 +40,8 @@ function RunOutputs({ runId }) {
     setTimeout(() => setCopied(null), 2000);
   };
 
-  if (loading) return <div className="lib-loading">Loading outputs…</div>;
-  if (!run)    return <div className="lib-loading">No data.</div>;
+  if (isLoading) return <div className="lib-loading">Loading outputs…</div>;
+  if (!run)      return <div className="lib-loading">No data.</div>;
 
   const blogOutput    = run.outputs?.find((o) => o.format === 'blog');
   const socialOutputs = run.outputs?.filter((o) => o.format === 'social') ?? [];
@@ -119,16 +124,29 @@ export default function Library() {
 
   const { data: runsData, loading } = useApi(() => pipelineApi.listRuns({ limit: 50 }), []);
 
-  const runs = localRuns ?? runsData?.data ?? [];
+  const sessionRuns = (() => {
+    try { return JSON.parse(sessionStorage.getItem('library_runs') || '[]'); } catch { return []; }
+  })();
+
+  const apiRuns = runsData?.data ?? [];
+  const runs = localRuns ?? (apiRuns.length > 0 ? apiRuns : sessionRuns);
 
   async function handleDelete(e, runId) {
     e.stopPropagation();
     if (!window.confirm('Delete this content item? This cannot be undone.')) return;
     setDeletingId(runId);
+    const isLocal = runId.startsWith('local-');
     try {
-      await pipelineApi.deleteRun(runId);
-      const current = localRuns ?? runsData?.data ?? [];
-      setLocalRuns(current.filter((r) => r.id !== runId));
+      if (!isLocal) await pipelineApi.deleteRun(runId);
+      const current = localRuns ?? runs;
+      const next = current.filter((r) => r.id !== runId);
+      setLocalRuns(next);
+      if (isLocal) {
+        try {
+          const stored = JSON.parse(sessionStorage.getItem('library_runs') || '[]');
+          sessionStorage.setItem('library_runs', JSON.stringify(stored.filter((r) => r.id !== runId)));
+        } catch { /* ignore */ }
+      }
       if (expandedRun === runId) setExpandedRun(null);
     } catch {
       alert('Failed to delete. Please try again.');
@@ -226,7 +244,7 @@ export default function Library() {
                         transition={{ duration: 0.25 }}
                         style={{ overflow: 'hidden' }}
                       >
-                        <RunOutputs runId={run.id} />
+                        <RunOutputs runId={run.id} initialOutputs={run.id.startsWith('local-') ? run.outputs : null} />
                       </motion.div>
                     )}
                   </AnimatePresence>

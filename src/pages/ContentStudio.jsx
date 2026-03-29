@@ -166,6 +166,21 @@ export default function ContentStudio() {
         }));
       }
 
+      // Save run to library (accumulate up to 20 entries)
+      const libraryEntry = {
+        id:            `local-${Date.now()}`,
+        status:        'completed',
+        totalDurationS: run.totalDurationS,
+        startedAt:     new Date().toISOString(),
+        outputs:       run.outputs,
+        steps:         run.steps,
+        brief:         { topic: topic.trim(), workspace: workspace.trim() || 'Personal' },
+      };
+      try {
+        const prev = JSON.parse(sessionStorage.getItem('library_runs') || '[]');
+        sessionStorage.setItem('library_runs', JSON.stringify([libraryEntry, ...prev].slice(0, 20)));
+      } catch { /* ignore */ }
+
       setTimeout(() => setStep('output'), 400);
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
