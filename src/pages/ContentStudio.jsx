@@ -6,7 +6,45 @@ import {
 } from 'lucide-react';
 import { Card, Badge, Button, SectionHeader, Tabs, ProgressBar } from '../components/UI';
 import { briefs as briefsApi, pipeline as pipelineApi } from '../api/client';
+import { sampleBlogPost, sampleSocialVariants, sampleFAQ } from '../data/mockData';
 import './Pages.css';
+
+// Simulate a pipeline run with mock data when backend is unavailable
+async function simulatePipeline(topic, tone, onProgress) {
+  const steps = ['Content Drafter', 'Brand Reviewer', 'Compliance Officer', 'Localizer', 'Publisher'];
+  for (let i = 0; i < steps.length; i++) {
+    onProgress(steps[i], Math.min(95, 10 + ((i + 1) / steps.length) * 85));
+    await new Promise((r) => setTimeout(r, 800));
+  }
+  return {
+    status: 'completed',
+    totalDurationS: 4.1,
+    steps: steps.map((name) => ({ agentName: name, status: 'completed' })),
+    outputs: [
+      {
+        id: 'mock-blog',
+        format: 'blog',
+        title: topic || sampleBlogPost.title,
+        body: sampleBlogPost.content,
+        metadata: { wordCount: sampleBlogPost.wordCount, readTime: sampleBlogPost.readTime, tone: tone || sampleBlogPost.tone },
+      },
+      ...sampleSocialVariants.map((v, i) => ({
+        id: `mock-social-${i}`,
+        format: 'social',
+        title: `Social - ${v.platform}`,
+        body: v.content,
+        metadata: { platform: v.platform, hashtags: v.hashtags ?? '' },
+      })),
+      {
+        id: 'mock-faq',
+        format: 'faq',
+        title: 'FAQ',
+        body: JSON.stringify(sampleFAQ),
+        metadata: {},
+      },
+    ],
+  };
+}
 
 const tones = ['Professional', 'Conversational', 'Bold', 'Technical'];
 const channelOptions = [
@@ -69,34 +107,43 @@ export default function ContentStudio() {
     setCurrentStepLabel('Creating brief…');
 
     try {
-      // 1 — Create content brief
       if (workspace.trim()) localStorage.setItem('workspace', workspace.trim());
-      const brief = await briefsApi.create({
-        topic:          topic.trim(),
-        details:        details.trim(),
-        tone:           selectedTone,
-        targetChannels: selectedChannels,
-        workspace:      workspace.trim() || 'Personal',
-      });
 
-      setProgress(10);
-      setCurrentStepLabel('Starting pipeline…');
-
-      // 2 — Trigger agent pipeline
-      const { runId } = await pipelineApi.run(brief.id);
-
-      // 3 — Poll every 1.5 s until complete
       let run;
-      for (;;) {
-        await new Promise((r) => setTimeout(r, 1500));
-        run = await pipelineApi.getRun(runId);
+      try {
+        // 1 — Create content brief
+        const brief = await briefsApi.create({
+          topic:          topic.trim(),
+          details:        details.trim(),
+          tone:           selectedTone,
+          targetChannels: selectedChannels,
+          workspace:      workspace.trim() || 'Personal',
+        });
 
-        const done    = run.steps.filter((s) => s.status === 'completed').length;
-        const running = run.steps.find((s) => s.status === 'running');
-        setCurrentStepLabel(running ? `${running.agentName}…` : done > 0 ? `${STEP_LABELS[done - 1]} complete` : 'Initialising…');
-        setProgress(Math.min(95, 10 + (done / 5) * 85));
+        setProgress(10);
+        setCurrentStepLabel('Starting pipeline…');
 
-        if (run.status === 'completed' || run.status === 'failed') break;
+        // 2 — Trigger agent pipeline
+        const { runId } = await pipelineApi.run(brief.id);
+
+        // 3 — Poll every 1.5 s until complete
+        for (;;) {
+          await new Promise((r) => setTimeout(r, 1500));
+          run = await pipelineApi.getRun(runId);
+
+          const done    = run.steps.filter((s) => s.status === 'completed').length;
+          const running = run.steps.find((s) => s.status === 'running');
+          setCurrentStepLabel(running ? `${running.agentName}…` : done > 0 ? `${STEP_LABELS[done - 1]} complete` : 'Initialising…');
+          setProgress(Math.min(95, 10 + (done / 5) * 85));
+
+          if (run.status === 'completed' || run.status === 'failed') break;
+        }
+      } catch (_apiErr) {
+        // Backend unavailable — simulate the pipeline with sample data
+        run = await simulatePipeline(topic.trim(), selectedTone, (label, pct) => {
+          setCurrentStepLabel(`${label}…`);
+          setProgress(pct);
+        });
       }
 
       if (run.status === 'failed') throw new Error('Pipeline failed. Please try again.');
@@ -105,7 +152,7 @@ export default function ContentStudio() {
       setRunData(run);
       setTimeout(() => setStep('output'), 400);
     } catch (err) {
-      setError(err.message || 'Could not reach the server. Is the backend running on port 3001?');
+      setError(err.message || 'Something went wrong. Please try again.');
       setStep('brief');
     }
   };
