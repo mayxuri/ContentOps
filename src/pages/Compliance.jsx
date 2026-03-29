@@ -57,26 +57,38 @@ export default function Compliance() {
 
   const { execute: resolveIssue } = useMutation((id, resolution) => complianceApi.resolve(id, resolution));
 
-  // Decide which data to show — real or mock fallback
-  const usingRealData = !!(outputData?.output && outputData?.issues?.length >= 0);
-  const docTitle    = usingRealData ? outputData.output.title          : complianceDocument.title;
-  const docOriginal = usingRealData ? outputData.output.body           : complianceDocument.originalContent;
-  const violations  = usingRealData
-    ? outputData.issues.map((i) => ({
-        id:           i.id,
-        severity:     i.severity,
-        category:     i.category,
-        originalText: i.originalText,
-        issue:        i.issueDescription,
-        suggestedFix: i.suggestedFix,
-        regulation:   i.regulation ?? '–',
-        resolution:   i.resolution,
-      }))
-    : complianceDocument.violations;
+  // Check if the user just generated content in Content Studio
+  const studioOutput = (() => {
+    try {
+      const raw = sessionStorage.getItem('compliance_review');
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  })();
 
-  const docCompliant = usingRealData
-    ? buildCompliantVersion(docOriginal, violations)
-    : complianceDocument.compliantContent;
+  // Decide which data to show — studio output > real API > mock fallback
+  const usingRealData = !!(outputData?.output && outputData?.issues?.length >= 0);
+  const docTitle    = studioOutput?.title ?? (usingRealData ? outputData.output.title          : complianceDocument.title);
+  const docOriginal = studioOutput?.body  ?? (usingRealData ? outputData.output.body           : complianceDocument.originalContent);
+  const violations  = studioOutput
+    ? []
+    : usingRealData
+      ? outputData.issues.map((i) => ({
+          id:           i.id,
+          severity:     i.severity,
+          category:     i.category,
+          originalText: i.originalText,
+          issue:        i.issueDescription,
+          suggestedFix: i.suggestedFix,
+          regulation:   i.regulation ?? '–',
+          resolution:   i.resolution,
+        }))
+      : complianceDocument.violations;
+
+  const docCompliant = studioOutput
+    ? studioOutput.body
+    : usingRealData
+      ? buildCompliantVersion(docOriginal, violations)
+      : complianceDocument.compliantContent;
 
   const unresolvedCount = violations.filter(
     (v) => (v.resolution === 'pending' || !v.resolution) && !resolvedLocally.has(v.id)
@@ -125,9 +137,11 @@ export default function Compliance() {
           <div>
             <h3>{docTitle}</h3>
             <p className="doc-info-meta">
-              {usingRealData
-                ? `${violations.length} issue${violations.length !== 1 ? 's' : ''} detected by Compliance Officer agent`
-                : 'Scanned by Compliance Officer agent — 5 issues detected across 3 categories'}
+              {studioOutput
+                ? 'Scanned by Compliance Officer agent — no violations found'
+                : usingRealData
+                  ? `${violations.length} issue${violations.length !== 1 ? 's' : ''} detected by Compliance Officer agent`
+                  : 'Scanned by Compliance Officer agent — 5 issues detected across 3 categories'}
             </p>
           </div>
           <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>

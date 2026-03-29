@@ -150,6 +150,16 @@ export default function ContentStudio() {
 
       setProgress(100);
       setRunData(run);
+
+      // Persist blog output so Compliance Review can display it
+      const blogOut = run.outputs?.find((o) => o.format === 'blog');
+      if (blogOut) {
+        sessionStorage.setItem('compliance_review', JSON.stringify({
+          title: blogOut.title,
+          body:  blogOut.body,
+        }));
+      }
+
       setTimeout(() => setStep('output'), 400);
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
