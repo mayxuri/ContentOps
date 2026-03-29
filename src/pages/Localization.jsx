@@ -41,7 +41,7 @@ export default function Localization() {
     } catch { return null; }
   })();
 
-  const sourceTitle = sampleBlogPost.title;
+  const sourceTitle = studioSource?.title ?? sampleBlogPost.title;
   const sourceBlurb = (studioSource?.body ?? sampleBlogPost.content).split('\n\n')[0];
 
   return (
