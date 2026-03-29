@@ -151,12 +151,18 @@ export default function ContentStudio() {
       setProgress(100);
       setRunData(run);
 
-      // Persist blog output so Compliance Review can display it
+      // Persist outputs for downstream pages
       const blogOut = run.outputs?.find((o) => o.format === 'blog');
       if (blogOut) {
-        sessionStorage.setItem('compliance_review', JSON.stringify({
-          title: blogOut.title,
-          body:  blogOut.body,
+        const payload = { title: blogOut.title, body: blogOut.body };
+        sessionStorage.setItem('compliance_review', JSON.stringify(payload));
+        sessionStorage.setItem('localization_source', JSON.stringify(payload));
+        sessionStorage.setItem('distribution_studio', JSON.stringify({
+          title:    blogOut.title,
+          channels: selectedChannels,
+          day:      new Date().getDate(),
+          month:    new Date().getMonth() + 1,
+          year:     new Date().getFullYear(),
         }));
       }
 

@@ -34,6 +34,16 @@ export default function Localization() {
 
   const current = langList[Math.min(selectedLang, langList.length - 1)];
 
+  const studioSource = (() => {
+    try {
+      const raw = sessionStorage.getItem('localization_source');
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  })();
+
+  const sourceTitle = studioSource?.title ?? sampleBlogPost.title;
+  const sourceBlurb = (studioSource?.body ?? sampleBlogPost.content).split('\n\n')[0];
+
   return (
     <div className="page-localization">
       <SectionHeader
@@ -81,8 +91,8 @@ export default function Localization() {
             <span className="translation-meta">Original content</span>
           </div>
           <div className="translation-content">
-            <h4>{sampleBlogPost.title}</h4>
-            <p>{sampleBlogPost.content.split('\n\n')[0]}</p>
+            <h4>{sourceTitle}</h4>
+            <p>{sourceBlurb}</p>
           </div>
         </Card>
 

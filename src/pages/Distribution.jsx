@@ -71,7 +71,14 @@ export default function Distribution() {
     : distributionChannels;
 
   // ── Calendar ───────────────────────────────────────────────────────────────
-  const calEvents = calData?.data?.length
+  const studioEntry = (() => {
+    try {
+      const raw = sessionStorage.getItem('distribution_studio');
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  })();
+
+  const baseCalEvents = calData?.data?.length
     ? calData.data.map((d) => ({
         day:     new Date(d.scheduledAt).getDate(),
         title:   d.output?.title ?? 'Content',
@@ -79,6 +86,20 @@ export default function Distribution() {
         status:  d.status,
       }))
     : calendarEvents;
+
+  const calEvents = (() => {
+    if (!studioEntry || studioEntry.year !== calYear || studioEntry.month !== calMonth) {
+      return baseCalEvents;
+    }
+    const channelToCalChannel = { blog: 'blog', social: 'twitter', faq: 'blog' };
+    const studioItems = studioEntry.channels.map((ch) => ({
+      day:     studioEntry.day,
+      title:   studioEntry.title,
+      channel: channelToCalChannel[ch] ?? ch,
+      status:  'scheduled',
+    }));
+    return [...baseCalEvents, ...studioItems];
+  })();
 
   const monthLabel = new Date(calYear, calMonth - 1, 1)
     .toLocaleString('default', { month: 'long', year: 'numeric' });
