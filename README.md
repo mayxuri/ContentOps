@@ -13,11 +13,7 @@ ContentOps is a full-stack platform that runs a five-agent AI pipeline to draft,
 
 ---
 
-## Screenshots
 
-> Add screenshots here after deploying or recording a demo.
-
----
 
 ## Features
 
